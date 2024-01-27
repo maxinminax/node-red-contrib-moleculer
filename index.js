@@ -313,7 +313,7 @@ module.exports = function (RED) {
         let topic = msg.topic || node.topic || null;
 
         if (topic) {
-          node.status({ fill: "blue", shape: "dot", text: status: "sending..." });
+          node.status({ fill: "blue", shape: "dot", text: "sending..." });
           broker["broker"].sendToChannel(topic, msg.payload);
           setTimeout(() => {
             node.status({});
