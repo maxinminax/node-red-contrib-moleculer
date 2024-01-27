@@ -25,6 +25,9 @@ module.exports = function (RED) {
           if (brokers[i]["services"][j]["version"] !== "") {
             service["version"] = brokers[i]["services"][j]["version"];
           }
+          if (brokers[i]["services"][j]["channels"] !== undefined) {
+            service["channels"] = brokers[i]["services"][j]["channels"];
+          }
           if (brokers[i]["services"][j]["events"] !== undefined) {
             service["events"] = brokers[i]["services"][j]["events"];
           }
@@ -80,7 +83,14 @@ module.exports = function (RED) {
     brokers[node.name] = { broker: null, services: {}, options };
     const { channels, middlewares = [], ...brokerOptions } = options;
     if (channels) {
-      middlewares.unshift(ChannelsMiddleware(channels));
+      middlewares.unshift(ChannelsMiddleware({
+        ...channels,
+        schemaProperty: 'channels',
+        sendMethodName: 'sendToChannel',
+        adapterPropertyName: 'channelAdapter',
+        channelHandlerTrigger: 'emitLocalChannelHandler',
+        // context: true
+      }));
     }
     brokers[node.name]["broker"] = new ServiceBroker({
       ...brokerOptions,
