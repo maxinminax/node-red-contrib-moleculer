@@ -52,7 +52,7 @@ module.exports = function (RED) {
             dynamicMiddleware.use(svc.express());
           }
         }
-        // await brokers[i]["broker"].start();
+        await brokers[i]["broker"].start();
       }
     }
   });
