@@ -34,7 +34,9 @@
     "moleculer-web": "^0.9.1"
   },
   "optionalDependencies": {
-    "ioredis": "^4.17.3",
-    "nats": "^1.4.12"
+    "ioredis": "^4.28.5",
+    "nats": "^1.4.12",
+    "kafkajs": "^2.2.4",
+    "amqplib": "^0.10.3"
   }
 }

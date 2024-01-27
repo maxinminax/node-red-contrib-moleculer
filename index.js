@@ -8,14 +8,14 @@ module.exports = function (RED) {
 
   RED.httpNode.use(dynamicMiddleware.handle());
 
-  RED.events.on("nodes-stopped", async (event) => {
+  RED.events.on("flows:stopped", async (event) => {
     dynamicMiddleware.clean();
     for (let prop in brokers) {
       await brokers[prop]["broker"].stop();
     }
   });
 
-  RED.events.on("nodes-started", async (event) => {
+  RED.events.on("flows:started", async (event) => {
     if (brokers !== {}) {
       for (let i in brokers) {
         for (let j in brokers[i]["services"]) {
@@ -52,7 +52,7 @@ module.exports = function (RED) {
             dynamicMiddleware.use(svc.express());
           }
         }
-        await brokers[i]["broker"].start();
+        // await brokers[i]["broker"].start();
       }
     }
   });
@@ -78,14 +78,14 @@ module.exports = function (RED) {
       options = {};
     }
     brokers[node.name] = { broker: null, services: {}, options };
-    const { channels, middlewares = [], ...brokerOptions } = { ...options };
-    if (channels && channels.options) {
-      middlewares.unshift(ChannelsMiddleware(channels.options));
+    const { channels, middlewares = [], ...brokerOptions } = options;
+    if (channels) {
+      middlewares.unshift(ChannelsMiddleware(channels));
     }
-    brokers[node.name]["broker"] = new ServiceBroker(
+    brokers[node.name]["broker"] = new ServiceBroker({
       ...brokerOptions,
       middlewares
-    );
+    });
     node.on("close", async (done) => {
       await brokers[node.name]["broker"].stop();
       done();
