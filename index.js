@@ -1,7 +1,8 @@
 module.exports = function (RED) {
   "use strict";
-  const { ServiceBroker,  } = require("moleculer");
+  const { ServiceBroker } = require("moleculer");
   const { MoleculerError, MoleculerRetryableError, ValidationError } = require("moleculer").Errors;
+  const ChannelsMiddleware = require("@moleculer/channels").Middleware;
   let brokers = {};
   let dynamicMiddleware = require("express-dynamic-middleware").create();
 
@@ -77,8 +78,13 @@ module.exports = function (RED) {
       options = {};
     }
     brokers[node.name] = { broker: null, services: {}, options };
+    const { channels, middlewares = [], ...brokerOptions } = options;
+    if (channels && channels.options) {
+      middlewares.unshift(ChannelsMiddleware(channels.options));
+    }
     brokers[node.name]["broker"] = new ServiceBroker(
-      brokers[node.name]["options"]
+      ...brokerOptions,
+      middlewares
     );
     node.on("close", async (done) => {
       await brokers[node.name]["broker"].stop();
@@ -104,6 +110,28 @@ module.exports = function (RED) {
     "moleculer-service-config",
     MoleculerServiceConfigNode
   );
+
+  function channelNode(n) {
+    RED.nodes.createNode(this, n);
+    this.broker = RED.nodes.getNode(n.broker);
+    this.service = RED.nodes.getNode(n.service);
+    this.name = n.name;
+    this.topic = n.topic;
+    this.group = n.group;
+    let node = this;
+    createChannel(node);
+  }
+  RED.nodes.registerType("moleculer-channel", channelNode);
+
+  function channelSendNode(n) {
+    RED.nodes.createNode(this, n);
+    this.broker = RED.nodes.getNode(n.broker);
+    this.name = n.name;
+    this.topic = n.topic;
+    var node = this;
+    createChannelSend(node);
+  }
+  RED.nodes.registerType("moleculer-channel-send", channelSendNode);
 
   function eventNode(n) {
     RED.nodes.createNode(this, n);
@@ -219,6 +247,84 @@ module.exports = function (RED) {
       return node.version + "." + node.name;
     } else {
       throw new Error("Missing Service Config");
+    }
+  }
+
+  function createChannel(node) {
+    try {
+      let broker = getBroker(node.broker);
+      let serviceName = getService(node.service);
+      if (!broker["services"].hasOwnProperty(serviceName)) {
+        broker["services"][serviceName] = {};
+      }
+      broker["services"][serviceName]["name"] = node.service.name;
+      broker["services"][serviceName]["version"] = node.service.version;
+      try {
+        if (node.service.settingsType) {
+          broker["services"][serviceName][
+            "settings"
+          ] = RED.util.evaluateNodeProperty(
+            node.service.settings,
+            node.service.settingsType,
+            node
+          );
+        } else {
+          broker["services"][serviceName]["settings"] = JSON.parse(
+            node.service.settings
+          );
+        }
+      } catch (e) {
+        broker["services"][serviceName]["settings"] = {};
+      }
+      if (!broker["services"][serviceName].hasOwnProperty("channels")) {
+        broker["services"][serviceName]["channels"] = {};
+      }
+      broker["services"][serviceName]["channels"][node.topic] = {
+        handler: (payload) => {
+          let msg = { topic: node.topic, payload };
+          node.status({
+            fill: "blue",
+            shape: "dot",
+            text: "receiving message...",
+          });
+          setTimeout(() => {
+            node.status({});
+          }, 200);
+          node.send(msg);
+        },
+      };
+      if (node.group !== "") {
+        broker["services"][serviceName]["channels"][node.topic][
+          "group"
+        ] = node.group.split(",");
+      }
+    } catch (err) {
+      node.error(err);
+    }
+  }
+
+  function createChannelSend(node) {
+    try {
+      let broker = getBroker(node.broker);
+      node.on("input", (msg, send, done) => {
+        send = send || function() { node.send.apply(node,arguments) }
+        done = done || function(e) { if(e){node.error(e, msg)}; }
+        
+        let topic = msg.topic || node.topic || null;
+
+        if (topic) {
+          node.status({ fill: "blue", shape: "dot", text: status: "sending..." });
+          broker["broker"].sendToChannel(topic, msg.payload);
+          setTimeout(() => {
+            node.status({});
+          }, 200);
+          done();
+        } else {
+          done(new Error("Missing topic, please send topic on msg.topic or Node Topic."));
+        }
+      });
+    } catch (err) {
+      node.error(err);
     }
   }
 

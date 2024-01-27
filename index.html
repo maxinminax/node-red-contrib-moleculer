@@ -44,7 +44,7 @@
     <p>Moleculer Broker Config</p>
     <h3>Details</h3>
     <p>Name: Name of broker config</p>
-    <p>Options: JSON broker config options. <a href="https://moleculer.services/docs/0.13/broker.html#Full-options-object">See more here.</a></p>
+    <p>Options: JSON broker config options. <a href="https://moleculer.services/docs/0.14/configuration#Full-options-object">See more here.</a></p>
 </script>
 
 <script type="text/javascript">
@@ -114,6 +114,124 @@
 </script>
 
 
+<script type="text/javascript">
+    /*global RED*/
+    RED.nodes.registerType('moleculer-channel', {
+        category: 'Moleculer',
+        outputs: 1,
+        color: "#ffffff",
+        icon: "moleculer_big.png",
+        paletteLabel: "channel",
+        defaults: {
+            broker: {
+                value: "",
+                type: "moleculer-config"
+            },
+            service: {
+                value: "",
+                type: "moleculer-service-config"
+            },
+            name: {
+                value: ""
+            },
+            topic: {
+                value: ""
+            },
+            group: {
+                value: ""
+            }
+        },
+        label: function () {
+            let lab = this.name || this.topic || null
+            return (lab)?(`ch: ${lab}`):('channel');
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="moleculer-channel">
+    <div class="form-row">
+        <label for="node-input-broker"><i class="fa fa-globe"></i> Broker</label>
+        <input type="text" id="node-input-broker" placeholder="Broker">
+    </div>
+    <div class="form-row">
+        <label for="node-input-service"><i class="fa fa-globe"></i> Service</label>
+        <input type="text" id="node-input-service" placeholder="Service">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="icon-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-group"><i class="icon-tasks"></i> Group</label>
+        <input type="text" id="node-input-group" placeholder="Group">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="moleculer-channel">
+    <p>Moleculer Channel</p>
+    <h3>Details</h3>
+    <p>Broker: Name of Broker</p>
+    <p>Service: Name of Service</p>
+    <p>Name: Name of Node</p>
+    <p>Topic: Name of Topic/Channel. </p>
+    <p>Group: Comma separated Groups. </p>
+</script>
+
+
+<script type="text/javascript">
+    /*global RED*/
+    RED.nodes.registerType('moleculer-channel-send', {
+        category: 'Moleculer',
+        outputs: 0,
+        inputs: 1,
+        color: "#ffffff",
+        icon: "moleculer_big.png",
+        paletteLabel: "sendToChannel",
+        defaults: {
+            broker: {
+                value: "",
+                type: "moleculer-config"
+            },
+            name: {
+                value: ""
+            },
+            topic: {
+                value: ""
+            },
+        },
+        label: function () {
+            return `(sendToChannel): ${this.topic}`;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="moleculer-channel-send">
+    <div class="form-row">
+        <label for="node-input-broker"><i class="fa fa-globe"></i> Broker</label>
+        <input type="text" id="node-input-broker" placeholder="Broker">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topic"><i class="icon-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="moleculer-channel-send">
+    <p>Moleculer Send to channel</p>
+    <h3>Details</h3>
+    <p>Broker: Name of Broker</p>
+    <p>Name: Name of Node</p>
+    <p>Topic: Name of Topic/Channel. Overridden by msg.topic. </p>
+</script>
+
 
 <script type="text/javascript">
     /*global RED*/
@@ -174,7 +292,7 @@
 
 <script type="text/x-red" data-help-name="moleculer-event">
     <p>Moleculer Event</p>
-<h3>Details</h3>
+    <h3>Details</h3>
     <p>Broker: Name of Broker</p>
     <p>Service: Name of Service</p>
     <p>Name: Name of Node</p>
@@ -316,7 +434,7 @@
     <h3>Details</h3>
     <p>Broker: Name of Broker</p>
     <p>Action: Name of Action. Overridden by msg.action. </p>
-    <p>Options: JSON options. <a href="https://moleculer.services/docs/0.13/actions.html#Syntax">See more here</a> </p>
+    <p>Options: JSON options. <a href="https://moleculer.services/docs/0.14/actions#Syntax">See more here</a> </p>
 </script>
 
 
