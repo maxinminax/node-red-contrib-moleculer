@@ -78,7 +78,7 @@ module.exports = function (RED) {
       options = {};
     }
     brokers[node.name] = { broker: null, services: {}, options };
-    const { channels, middlewares = [], ...brokerOptions } = options;
+    const { channels, middlewares = [], ...brokerOptions } = { ...options };
     if (channels && channels.options) {
       middlewares.unshift(ChannelsMiddleware(channels.options));
     }
